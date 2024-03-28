@@ -1,0 +1,58 @@
+version: '3.9'
+
+networks:
+  default:
+    name: pg-repmgr
+    driver: bridge
+
+x-version-common:
+  &service-common
+  image: docker.io/bitnami/postgresql-repmgr:15
+  restart: always
+
+x-common-env:
+  &common-env
+  REPMGR_PASSWORD: repmgr
+  REPMGR_PARTNER_NODES: pg-0,pg-1:5432
+  REPMGR_PORT_NUMBER: 5432
+  REPMGR_PRIMARY_HOST: pg-0
+  REPMGR_PRIMARY_PORT: 5432
+  POSTGRESQL_POSTGRES_PASSWORD: adminpass
+  POSTGRESQL_USERNAME: apiuser
+  POSTGRESQL_PASSWORD: apipass
+  POSTGRESQL_DATABASE: apidb
+  POSTGRESQL_SHARED_PRELOAD_LIBRARIES: pgaudit, pg_stat_statements
+  POSTGRESQL_SYNCHRONOUS_COMMIT_MODE: remote_write
+  POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS: 1
+
+
+services:
+  pg-0:
+    <<: *service-common
+    volumes:
+      - ./pg_0_data:/bitnami/postgresql
+      - ./postgresql.conf:/opt/bitnami/postgresql/conf/postgresq.conf
+    environment:
+      <<: *common-env
+      REPMGR_NODE_NAME: pg-0
+      REPMGR_NODE_NETWORK_NAME: pg-0
+  pg-1:
+    <<: *service-common
+    volumes:
+      - ./pg_1_data:/bitnami/postgresql
+      - ./postgresql.conf:/opt/bitnami/postgresql/conf/postgresq.conf
+    environment:
+      <<: *common-env
+      REPMGR_NODE_NAME: pg-1
+      REPMGR_NODE_NETWORK_NAME: pg-1
+  haproxy:
+    build:
+      context: .
+    ports:
+      - 3000:3000
+      - 5432:5432
+    privileged: true
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./primary-check.sh:/build-psql/primary-check.sh
+      - ./standby-check.sh:/build-psql/standby-check.sh
