@@ -26,3 +26,10 @@ docker-compose start pg-0
 
 # => pg-0 becomes standby server
 ```
+
+## References
+
+- https://blog.shiftasia.com/postgres-failover-with-repmgr/
+- https://docs.haproxy.org/2.9/configuration.html#3.1-external-check
+- https://hub.docker.com/_/haproxy
+- https://hub.docker.com/r/bitnami/postgresql-repmgr
