@@ -25,11 +25,11 @@ x-common-env:
   POSTGRESQL_SYNCHRONOUS_COMMIT_MODE: remote_write
   POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS: 1
 
-
 services:
   pg-0:
     <<: *service-common
     volumes:
+      - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
       - ./pg_0_data:/bitnami/postgresql
       - ./postgresql.conf:/opt/bitnami/postgresql/conf/postgresq.conf
     environment:
